@@ -15,18 +15,17 @@ st.set_page_config(
 # Título Principal
 st.title("🌍 Dashboard Global de Emisiones de CO₂")
 
-# --- 2. CARGA DE DATOS (CORREGIDO RUTAS SUBCARPETAS) ---
+# --- 2. CARGA DE DATOS ---
 @st.cache_data
 def load_data():
     # Obtener la ruta del directorio actual del script
     script_dir = os.path.dirname(os.path.abspath(__file__))
     
-    # --- ACTUALIZACIÓN CLAVE AQUÍ ---
-    # Apuntamos a las subcarpetas dentro de 'Data'
+    # --- RUTAS A SUBCARPETAS ---
     shp_path = os.path.join(script_dir, 'Data', '50m_cultural', 'ne_50m_admin_0_countries.shp')
     csv_path = os.path.join(script_dir, 'Data', 'emissions_per_country', 'annual-co2-emissions-per-country.csv')
 
-    # Validar existencia (Debugging mejorado)
+    # Validar existencia
     if not os.path.exists(shp_path):
         st.error(f"❌ Error de ruta. No se encontró: {shp_path}")
         st.info("Verifica que dentro de 'Data' exista la carpeta '50m_cultural'.")
@@ -81,8 +80,8 @@ with st.sidebar:
     st.divider()
     st.markdown("Desarrollado con Streamlit y Plotly.")
 
-# --- 4. ESTRUCTURA DE PESTAÑAS ---
-tab_dashboard, tab_info = st.tabs(["📊 Dashboard Visual", "ℹ️ Metodología y Datos"])
+# --- 4. ESTRUCTURA DE PESTAÑAS (3 TABS AHORA) ---
+tab_dashboard, tab_info, tab_design = st.tabs(["📊 Dashboard Visual", "ℹ️ Metodología y Datos", "🎨 Decisiones de Diseño"])
 
 # ==============================================================================
 # PESTAÑA 1: DASHBOARD
@@ -210,6 +209,7 @@ with tab_info:
 
     st.subheader("📂 1. Fuentes de Datos")
     st.markdown("""
+    * **Ubicación de archivos:** Carpeta local `Data/`.
     * **Emisiones de CO₂:** Datos del *Global Carbon Project*, procesados por [Our World in Data](https://ourworldindata.org/co2-emissions).
       * Ruta: `Data/emissions_per_country/annual-co2-emissions-per-country.csv`
     * **Geometrías:** Fronteras administrativas de [Natural Earth](https://www.naturalearthdata.com/) (1:50m).
@@ -223,17 +223,113 @@ with tab_info:
     with col_info2:
         st.info(f"**Periodo:** {int(df['year'].min())} - {int(df['year'].max())}.")
 
-    st.subheader("🎨 3. Decisiones de Diseño")
-    with st.expander("Ver justificación de diseño", expanded=True):
-        st.write("""
-        - **Escala de Color Fija:** En el mapa, la escala de rojos se mantiene constante para evidenciar el aumento real de emisiones.
-        - **Agregación Regional:** Gráficos agrupados por continente para tendencias macro.
-        - **Normalización:** Treemap muestra porcentajes relativos (% root) para comparar responsabilidad histórica.
-        """)
-
     st.subheader("⚠️ 4. Limitaciones")
     st.warning("""
     - **Datos Históricos:** Cobertura limitada antes de 1900.
     - **Cambios Territoriales:** Países históricos pueden no visualizarse en el mapa actual.
     - **Alcance:** Emisiones territoriales, no por consumo.
+    """)
+
+# ==============================================================================
+# PESTAÑA 3: DECISIONES DE DISEÑO
+# ==============================================================================
+with tab_design:
+    st.markdown("""
+    # Análisis Simplificado de la Aplicación de Emisiones de CO₂
+
+    La aplicación es un dashboard interactivo construido en Streamlit que permite explorar cómo han cambiado las emisiones de CO₂ en el mundo. Está organizada en cuatro secciones que analizan el fenómeno desde distintos ángulos.
+
+    ---
+
+    ## 1. Mapa de Emisiones Anuales
+
+    ### Qué muestra
+    Un mapa del mundo coloreado según la cantidad de CO₂ emitido por cada país en un año específico.
+
+    ### Qué permite hacer
+    - Cambiar el año con un slider.
+    - Cambiar la proyección del mapa.
+
+    ### Qué se observa
+    - China es el mayor emisor global.
+    - Estados Unidos ocupa el segundo lugar.
+    - Europa presenta niveles intermedios.
+    - África, Sudamérica y Oceanía muestran valores más bajos en comparación.
+
+    ---
+
+    ## 2. Tendencias Históricas
+
+    ### Qué muestra
+    Series de tiempo que comparan la evolución de las emisiones de distintos países desde 1750.
+
+    ### Qué permite hacer
+    - Seleccionar varios países simultáneamente.
+
+    ### Qué se observa
+    - China crece aceleradamente desde 1990.
+    - Estados Unidos lideró durante más de un siglo, pero hoy reduce o estabiliza sus emisiones.
+    - Europa disminuye sus emisiones desde los años 70–90.
+    - India aumenta de forma acelerada.
+    - Brasil crece de manera más moderada.
+
+    Esta sección permite entender los procesos de industrialización de cada país.
+
+    ---
+
+    ## 3. Emisiones por Región
+
+    ### Qué muestra
+    La contribución de los continentes a las emisiones globales a lo largo del tiempo.
+
+    ### Qué permite hacer
+    - Seleccionar regiones o continentes.
+    - Visualizar un gráfico de áreas apiladas con el total de CO₂ por región.
+
+    ### Qué se observa
+    - Asia es el mayor emisor contemporáneo.
+    - Norteamérica fue líder histórico.
+    - Europa muestra una reducción sostenida.
+    - Sudamérica y África mantienen valores relativamente bajos, aunque en aumento.
+
+    ---
+
+    ## 4. Responsabilidad Histórica Acumulada
+
+    ### Qué muestra
+    Qué países y regiones han emitido más CO₂ desde 1750 hasta un año específico.
+
+    ### Qué permite hacer
+    - Ajustar el año de corte.
+    - Seleccionar continentes.
+    - Visualizar un treemap donde el tamaño representa la proporción acumulada.
+
+    ### Qué se observa
+    - Estados Unidos concentra cerca del 26% del total histórico.
+    - China aporta alrededor del 14%.
+    - Europa en su conjunto suma una proporción importante.
+    - América Latina, África y Oceanía tienen porcentajes bajos.
+
+    Esta sección es útil para discutir justicia climática y acuerdos internacionales.
+
+    ---
+
+    ## Visión Global de la Aplicación
+
+    La aplicación ofrece una comprensión integral del tema combinando:
+
+    - Análisis geográfico mediante mapa.
+    - Análisis temporal mediante series históricas.
+    - Análisis regional por continentes.
+    - Análisis político e histórico mediante responsabilidad acumulada.
+
+    ---
+
+    ## Fortalezas de la Aplicación
+
+    - Interactividad fluida.
+    - Diversidad de visualizaciones: mapa, líneas, áreas, treemap.
+    - Buena integración entre datos geográficos e históricos.
+    - Diseño claro y profesional.
+    - Útil para educación, análisis ambiental y presentaciones estratégicas.
     """)
