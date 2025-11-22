@@ -15,30 +15,32 @@ st.set_page_config(
 # Título Principal
 st.title("🌍 Dashboard Global de Emisiones de CO₂")
 
-# --- 2. CARGA DE DATOS (Actualizada a carpeta 'Data') ---
+# --- 2. CARGA DE DATOS (CORREGIDO RUTAS SUBCARPETAS) ---
 @st.cache_data
 def load_data():
     # Obtener la ruta del directorio actual del script
     script_dir = os.path.dirname(os.path.abspath(__file__))
     
-    # --- RUTAS ACTUALIZADAS A LA CARPETA 'Data' ---
-    shp_path = os.path.join(script_dir, 'Data', 'ne_50m_admin_0_countries.shp')
-    csv_path = os.path.join(script_dir, 'Data', 'annual-co2-emissions-per-country.csv')
+    # --- ACTUALIZACIÓN CLAVE AQUÍ ---
+    # Apuntamos a las subcarpetas dentro de 'Data'
+    shp_path = os.path.join(script_dir, 'Data', '50m_cultural', 'ne_50m_admin_0_countries.shp')
+    csv_path = os.path.join(script_dir, 'Data', 'emissions_per_country', 'annual-co2-emissions-per-country.csv')
 
-    # Validar existencia
+    # Validar existencia (Debugging mejorado)
     if not os.path.exists(shp_path):
-        st.error(f"❌ Archivo Shapefile no encontrado en: {shp_path}")
-        st.info("Asegúrate de que los archivos .shp, .shx y .dbf estén dentro de la carpeta 'Data'.")
+        st.error(f"❌ Error de ruta. No se encontró: {shp_path}")
+        st.info("Verifica que dentro de 'Data' exista la carpeta '50m_cultural'.")
         st.stop()
     if not os.path.exists(csv_path):
-        st.error(f"❌ Archivo CSV no encontrado en: {csv_path}")
+        st.error(f"❌ Error de ruta. No se encontró: {csv_path}")
+        st.info("Verifica que dentro de 'Data' exista la carpeta 'emissions_per_country'.")
         st.stop()
 
     # Cargar Mapa
     try:
         world = gpd.read_file(shp_path)
     except Exception as e:
-        st.error(f"Error leyendo el Shapefile. Verifica que .shx y .dbf estén en la misma carpeta. Detalle: {e}")
+        st.error(f"Error leyendo el archivo Shapefile: {e}")
         st.stop()
 
     world = world.rename(columns={'ISO_A3': 'code'})
@@ -54,7 +56,7 @@ def load_data():
     value_col = [c for c in df.columns if c not in ['country', 'code', 'year']][0]
     df = df.rename(columns={value_col: 'co2'})
 
-    # Merge para obtener Continente y Población en el DataFrame principal
+    # Merge para obtener Continente y Población
     world_info = world[['code', 'CONTINENT', 'POP_EST', 'geometry']].drop_duplicates(subset='code')
     df_extended = df.merge(world_info[['code', 'CONTINENT', 'POP_EST']], on='code', how='left')
 
@@ -63,10 +65,9 @@ def load_data():
 # Ejecutar carga
 try:
     world_master, df = load_data()
-    # GeoJSON para Plotly
     geojson_world = world_master.set_index('code')['geometry'].__geo_interface__
 except Exception as e:
-    st.error(f"Error inesperado cargando datos: {e}")
+    st.error(f"Error general en la carga de datos: {e}")
     st.stop()
 
 # --- 3. SIDEBAR GLOBAL ---
@@ -74,7 +75,6 @@ with st.sidebar:
     st.header("🎛️ Configuración")
     st.info("Usa los filtros en cada sección para personalizar la vista.")
     
-    # Botón de Reset Global
     if st.button("🔄 Restablecer Todo", type="primary"):
         st.rerun()
     
@@ -117,7 +117,7 @@ with tab_dashboard:
                 hover_name='country',
                 projection=proj_map,
                 color_continuous_scale='Reds',
-                range_color=[0, df['co2'].max()], # Escala fija
+                range_color=[0, df['co2'].max()],
                 title=f'Emisiones de CO₂ en {year_map} (Mt)'
             )
             fig_map.update_geos(fitbounds="locations", visible=False, showcountries=True, countrycolor="#d0d0d0")
@@ -131,10 +131,8 @@ with tab_dashboard:
     # --- SECCIÓN B: TENDENCIAS Y REGIONES ---
     col_trend, col_region = st.columns(2)
 
-    # GRÁFICA 2: TENDENCIAS (LÍNEAS)
     with col_trend:
         st.header("2. Tendencias Históricas")
-        
         top_countries = ['China', 'United States', 'India', 'United Kingdom', 'Germany', 'Brazil']
         avail_countries = sorted(df['country'].unique())
         default_paises = [c for c in top_countries if c in avail_countries]
@@ -153,10 +151,8 @@ with tab_dashboard:
         else:
             st.info("Selecciona al menos un país.")
 
-    # GRÁFICA 3: REGIONES (ÁREAS)
     with col_region:
         st.header("3. Emisiones por Región")
-        
         lista_continentes = sorted([c for c in df['CONTINENT'].dropna().unique()])
         sel_regiones = st.multiselect("Filtrar Regiones:", lista_continentes, default=lista_continentes, key="multi_regiones")
         
@@ -178,7 +174,6 @@ with tab_dashboard:
 
     # --- SECCIÓN C: TREEMAP ---
     st.header("4. Responsabilidad Histórica (Acumulada)")
-    
     c1, c2 = st.columns([1, 2])
     with c1:
         year_limit = st.slider("Acumulado hasta:", 1900, 2024, 2024, key="slider_tree")
@@ -202,31 +197,25 @@ with tab_dashboard:
     else:
         st.warning("Selecciona regiones para ver el gráfico.")
 
-
 # ==============================================================================
 # PESTAÑA 2: INFORMACIÓN Y METODOLOGÍA
 # ==============================================================================
 with tab_info:
     st.header("ℹ️ Sobre este Proyecto")
-    
     st.markdown("""
     Este tablero interactivo permite explorar la evolución histórica de las emisiones de dióxido de carbono (CO₂) 
-    a nivel global, regional y nacional. Su objetivo es facilitar la comprensión de las tendencias climáticas mediante visualización de datos.
+    a nivel global, regional y nacional.
     """)
-    
     st.divider()
 
-    # 1. DATASETS
     st.subheader("📂 1. Fuentes de Datos")
     st.markdown("""
-    * **Ubicación de archivos:** Carpeta local `Data/`.
     * **Emisiones de CO₂:** Datos del *Global Carbon Project*, procesados por [Our World in Data](https://ourworldindata.org/co2-emissions).
-      * Archivo: `annual-co2-emissions-per-country.csv`
+      * Ruta: `Data/emissions_per_country/annual-co2-emissions-per-country.csv`
     * **Geometrías:** Fronteras administrativas de [Natural Earth](https://www.naturalearthdata.com/) (1:50m).
-      * Archivo: `ne_50m_admin_0_countries.shp`
+      * Ruta: `Data/50m_cultural/ne_50m_admin_0_countries.shp`
     """)
 
-    # 2. UNIDADES
     st.subheader("📏 2. Unidades y Periodo")
     col_info1, col_info2 = st.columns(2)
     with col_info1:
@@ -234,19 +223,17 @@ with tab_info:
     with col_info2:
         st.info(f"**Periodo:** {int(df['year'].min())} - {int(df['year'].max())}.")
 
-    # 3. DISEÑO
     st.subheader("🎨 3. Decisiones de Diseño")
     with st.expander("Ver justificación de diseño", expanded=True):
         st.write("""
-        - **Escala de Color Fija:** En el mapa, la escala de rojos se mantiene constante (0 al máximo histórico) para evidenciar el aumento real de emisiones a través de los años.
-        - **Agregación Regional:** Se utilizan gráficos de área y treemaps agrupados por continente para facilitar la lectura de tendencias macro-geopolíticas.
-        - **Normalización:** En el Treemap, se muestran porcentajes relativos (% root) en lugar de valores absolutos para facilitar la comparación de responsabilidad histórica.
+        - **Escala de Color Fija:** En el mapa, la escala de rojos se mantiene constante para evidenciar el aumento real de emisiones.
+        - **Agregación Regional:** Gráficos agrupados por continente para tendencias macro.
+        - **Normalización:** Treemap muestra porcentajes relativos (% root) para comparar responsabilidad histórica.
         """)
 
-    # 4. LIMITACIONES
     st.subheader("⚠️ 4. Limitaciones")
     st.warning("""
-    - **Datos Históricos:** La cobertura de datos antes de 1900 es limitada para muchos países en desarrollo.
-    - **Cambios Territoriales:** Países que ya no existen (ej. URSS) pueden no visualizarse correctamente en el mapa actual.
-    - **Alcance:** Los datos reflejan emisiones territoriales, no huella de carbono por consumo (trade-adjusted).
+    - **Datos Históricos:** Cobertura limitada antes de 1900.
+    - **Cambios Territoriales:** Países históricos pueden no visualizarse en el mapa actual.
+    - **Alcance:** Emisiones territoriales, no por consumo.
     """)
