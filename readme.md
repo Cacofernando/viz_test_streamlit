@@ -62,5 +62,6 @@ streamlit run streamlit_app_v4.py
 
 ---
 **Autores:** Juan José Torres, Cristián Vargas, Christian Vásquez, Claudio Ballerini
+
 **Profesor:** Carlos Elías Pérez Pizarro  
 **Curso:** Magíster en Data Science – UDD
