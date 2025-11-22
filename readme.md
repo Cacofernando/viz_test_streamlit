@@ -8,12 +8,18 @@ Aplicación web interactiva desarrollada en **Streamlit** que permite explorar l
 
 ## 📂 Estructura del repositorio
 ```
-├── streamlit_app_v4.py  # Código principal de la aplicación Streamlit
-├── data/
-│   ├── annual-co2-emissions-per-country.csv
-│   └── ne_50m_admin_0_countries.shp
-├── requirements.txt
-└── README.md
+├── streamlit_app_v4.py           # Script principal de la aplicación (Dashboard)
+├── requirements.txt              # Lista de dependencias (streamlit, geopandas, plotly, etc.)
+├── README.md                     # Documentación del proyecto
+└── Data/                         # Directorio principal de datos
+    ├── 50m_cultural/             # Subcarpeta con archivos geográficos (Shapefiles)
+    │   ├── ne_50m_admin_0_countries.shp  # Geometría (Mapas)
+    │   ├── ne_50m_admin_0_countries.shx  # Índice
+    │   ├── ne_50m_admin_0_countries.dbf  # Atributos
+    │   └── ne_50m_admin_0_countries.prj  # Proyección
+    │
+    └── emissions_per_country/    # Subcarpeta con datos numéricos
+        └── annual-co2-emissions-per-country.csv # Dataset de emisiones (Our World in Data)
 ```
 
 ## 🔍 Fuentes de datos
