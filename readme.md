@@ -33,6 +33,9 @@ Aplicación web interactiva desarrollada en **Streamlit** que permite explorar l
   - `pandas`
   - `geopandas`
   - `plotly`
+  - `os`
+  - `ipywidgets`
+  - `IPython.display`
 
 Instalación rápida:
 ```bash
