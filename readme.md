@@ -1,5 +1,13 @@
 # 🌍 Dashboard Global de Emisiones de CO₂
 
+---
+**Autores:** Juan José Torres, Cristián Vargas, Christian Vásquez, Claudio Ballerini
+
+**Profesor:** Carlos Elías Pérez Pizarro  
+**Curso:** Magíster en Data Science – UDD
+
+---
+
 ## 📌 Descripción
 Aplicación web interactiva desarrollada en **Streamlit** que permite explorar la evolución histórica de las emisiones de dióxido de carbono (CO₂) a nivel global, regional y nacional. Incluye visualizaciones dinámicas basadas en datos de **Our World in Data** y geometrías de **Natural Earth**.
 
@@ -63,8 +71,3 @@ streamlit run streamlit_app_v4.py
 - Cambios territoriales (ej. URSS) afectan visualización.
 - Datos reflejan emisiones territoriales, no consumo ajustado.
 
----
-**Autores:** Juan José Torres, Cristián Vargas, Christian Vásquez, Claudio Ballerini
-
-**Profesor:** Carlos Elías Pérez Pizarro  
-**Curso:** Magíster en Data Science – UDD
